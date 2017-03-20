@@ -3,6 +3,9 @@ package de.hindenbug.gameoflife;
 import java.util.Objects;
 
 /**
+ * A <code>Being</code> represents a life form in conways game of life. It exists in one specific row and column and
+ * has up to eight neighbors, from top left to bottom right.
+ *
  * @author Nils Verheyen
  * @since 11.03.17 16:33
  */
@@ -17,6 +20,21 @@ public class Being
         this.column = column;
     }
 
+    /**
+     * Returns <code>true</code> if this being is the neighbor of the other one. A being is the neighbor of another
+     * being if it exists "around" it.
+     * <pre>
+     *     - - - - -
+     *     - X X X -
+     *     - X O X -
+     *     - X X X -
+     *     - - - - -
+     * </pre>
+     * The <code>O</code> represents this being, all <code>X</code> are neighbors.
+     *
+     * @param other Possible neighbor of this being.
+     * @return <code>true</code> is the other one is a being
+     */
     public boolean isNeighborOf(Being other)
     {
         return other.row >= row - 1
@@ -49,19 +67,9 @@ public class Being
         return row;
     }
 
-    public void setRow(int row)
-    {
-        this.row = row;
-    }
-
     public int getColumn()
     {
         return column;
-    }
-
-    public void setColumn(int column)
-    {
-        this.column = column;
     }
 
     @Override

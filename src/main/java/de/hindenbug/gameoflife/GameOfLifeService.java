@@ -12,12 +12,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * A <code>GameOfLifeService</code> is a javafx service capable of generating a {@linkplain GameOfLife} object.
+ * To listen to generation events add change listeners with {@linkplain #addListener(ChangeListener)}.
+ *
  * @author Nils Verheyen
  * @since 14.03.17 21:31
  */
 public class GameOfLifeService extends Service<GameOfLife> implements ObservableValue<GameOfLife>
 {
-    public  static final int DEFAULT_GENERATION_TIME_MS = 200;
+    public static final int DEFAULT_GENERATION_TIME_MS = 200;
 
     private static final Logger LOG = LoggerFactory.getLogger(GameOfLifeService.class);
 
@@ -69,6 +72,12 @@ public class GameOfLifeService extends Service<GameOfLife> implements Observable
         };
     }
 
+    /**
+     * Adds a new listener that will be informed, after a new generation was created in this {@linkplain #gameOfLife}.
+     * The thrown event will consist of the old game of life and the new one. No observable value is given!
+     *
+     * @param changeListener contains the listener that will be informed, not null
+     */
     @Override
     public void addListener(ChangeListener changeListener)
     {
