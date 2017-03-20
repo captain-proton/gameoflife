@@ -15,15 +15,17 @@ import java.util.List;
  */
 public class GameOfLifeService extends Service<GameOfLife> implements ObservableValue<GameOfLife>
 {
-    private final int interval;
+    public  static final int DEFAULT_GENERATION_TIME_MS = 200;
     private final GameOfLife gameOfLife;
 
     private final List<ChangeListener<GameOfLife>> changeListeners;
     private final List<InvalidationListener> invalidationListeners;
 
+    private int interval;
+
     public GameOfLifeService(GameOfLife gameOfLife)
     {
-        this(gameOfLife, 200);
+        this(gameOfLife, DEFAULT_GENERATION_TIME_MS);
     }
 
     public GameOfLifeService(GameOfLife gameOfLife, int interval)
@@ -84,5 +86,13 @@ public class GameOfLifeService extends Service<GameOfLife> implements Observable
     public void removeListener(InvalidationListener invalidationListener)
     {
         this.invalidationListeners.remove(invalidationListener);
+    }
+
+    public synchronized void setGenerationTime(int millis)
+    {
+        if (millis <= 0)
+            throw new IllegalArgumentException("millis must be greater than zero");
+
+        this.interval = millis;
     }
 }

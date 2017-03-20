@@ -6,11 +6,13 @@ package de.hindenbug.gameoflife;
  * @since 11.03.17 22:50
  */
 
+import com.sun.istack.internal.NotNull;
 import javafx.application.Application;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -45,6 +47,7 @@ public class UI extends Application
 
     private int beingHeight = BEING_HEIGHT;
     private int beingWidth = BEING_WIDTH;
+    private int generationTimeMS = GameOfLifeService.DEFAULT_GENERATION_TIME_MS;
 
     private GameOfLifeService generator;
 
@@ -57,25 +60,41 @@ public class UI extends Application
     public void start(Stage primaryStage) throws IOException
     {
         primaryStage.setTitle("Game Of Life");
-        primaryStage.setMinHeight(600);
-        primaryStage.setMinWidth(800);
+        primaryStage.setMinWidth(640);
+        primaryStage.setMinHeight(480);
+        primaryStage.setWidth(1024);
+        primaryStage.setHeight(768);
 
-        Label lblRows = new Label("Zellenhöhe");
+        Label lblRows = createLabel("Zellenhöhe");
         lblRows.getStyleClass().add("tf-label");
         TextField tfRows = new TextField();
-        tfRows.addEventHandler(KeyEvent.KEY_TYPED, createBeingSizeTFHandler(2));
-        tfRows.setOnKeyReleased(e -> beingHeight = !tfRows.getText().isEmpty()
-                                                   ? Integer.valueOf(tfRows.getText())
-                                                   : BEING_HEIGHT);
-        tfRows.getStyleClass().add("fieldsize");
-        Label lblColumns = new Label("Zellenbreite");
-        lblColumns.getStyleClass().add("tf-label");
+        setTextFieldDefaults(tfRows,
+                keyEvent -> beingHeight = !tfRows.getText().isEmpty()
+                                          ? Integer.valueOf(tfRows.getText())
+                                          : BEING_HEIGHT, Integer.toString(BEING_HEIGHT),
+                KeyEvent.KEY_TYPED, createBeingSizeTFHandler(2));
+
+        Label lblColumns = createLabel("Zellenbreite");
         TextField tfColumns = new TextField();
-        tfColumns.addEventHandler(KeyEvent.KEY_TYPED, createBeingSizeTFHandler(2));
-        tfColumns.setOnKeyReleased(e -> beingWidth = !tfColumns.getText().isEmpty()
-                                                     ? Integer.valueOf(tfColumns.getText())
-                                                     : BEING_WIDTH);
-        tfColumns.getStyleClass().add("fieldsize");
+        setTextFieldDefaults(tfColumns,
+                keyEvent -> beingWidth = !tfColumns.getText().isEmpty()
+                                         ? Integer.valueOf(tfColumns.getText())
+                                         : BEING_WIDTH, Integer.toString(BEING_WIDTH),
+                KeyEvent.KEY_TYPED, createBeingSizeTFHandler(2));
+
+        Label lblTime = createLabel("Generierungszeit (ms)");
+        TextField tfTime = new TextField();
+        setTextFieldDefaults(tfTime,
+                keyEvent ->
+                {
+                    generationTimeMS = !tfTime.getText().isEmpty()
+                                       ? Integer.valueOf(tfTime.getText())
+                                       : GameOfLifeService.DEFAULT_GENERATION_TIME_MS;
+                    if (generator != null)
+                        generator.setGenerationTime(generationTimeMS);
+                },
+                Integer.toString(GameOfLifeService.DEFAULT_GENERATION_TIME_MS),
+                KeyEvent.KEY_TYPED, createBeingSizeTFHandler(4));
 
         Button btnStart = new Button("Start");
         btnStart.setOnAction(this::startGenerator);
@@ -89,7 +108,10 @@ public class UI extends Application
         Button btnReset = new Button("Neustart");
         btnReset.setOnAction(this::onReset);
 
-        controls = new HBox(5, lblRows, tfRows, lblColumns, tfColumns, btnStart, btnStop, btnNextGeneration, btnReset);
+        controls = new HBox(5, lblRows, tfRows,
+                lblColumns, tfColumns,
+                lblTime, tfTime,
+                btnStart, btnStop, btnNextGeneration, btnReset);
         controls.setPadding(new Insets(5));
 
         canvas = new Canvas();
@@ -97,8 +119,8 @@ public class UI extends Application
 
         VBox container = new VBox(5, controls, canvas);
 
-        scene = new Scene(container, 800, 600);
-        scene.getStylesheets().add("de/hindenbug/gameoflife/gameoflife.css");
+        scene = new Scene(container, primaryStage.getWidth(), primaryStage.getHeight());
+        scene.getStylesheets().add("gameoflife.css");
 
         canvas.setOnMouseClicked(this::addBeing);
 
@@ -179,7 +201,7 @@ public class UI extends Application
         gc.setLineWidth(1);
 
         // see http://stackoverflow.com/questions/27846659/how-to-draw-an-1-pixel-line-using-javafx-canvas
-        
+
         // columns
         for (double x = .5; x < canvas.getWidth(); x += beingWidth)
         {
@@ -231,14 +253,41 @@ public class UI extends Application
         drawBeing(x, y, color);
     }
 
+    private static Label createLabel(String text)
+    {
+        Label label = new Label(text);
+        label.getStyleClass().add("tf-label");
+        return label;
+    }
 
-    private EventHandler<KeyEvent> createBeingSizeTFHandler(final Integer maxLength)
+    private static <T extends Event> void setTextFieldDefaults(TextField textField, EventHandler<? super KeyEvent> keyReleasedHandler,
+                                                               String text,
+                                                               @NotNull EventType<T> eventType,
+                                                               @NotNull EventHandler<? super T> eventHandler)
+    {
+        textField.setText(text);
+        textField.addEventHandler(eventType, eventHandler);
+        textField.setOnKeyReleased(keyReleasedHandler);
+        textField.getStyleClass().add("fieldsize");
+    }
+
+    private static EventHandler<KeyEvent> createBeingSizeTFHandler(final Integer maxBeingSize)
     {
         return e ->
         {
             TextField textField = (TextField) e.getSource();
-            if (textField.getText().length() >= maxLength
-                    || !Character.isDigit(e.getCharacter().charAt(0)))
+            boolean isTextGTMax = textField.getText().length() >= maxBeingSize;
+            boolean isTextSelected = !textField.getSelectedText().isEmpty();
+            boolean isDigit = Character.isDigit(e.getCharacter().charAt(0));
+
+            /*
+             consume event if:
+             1. the text is greater than the allowed number of characters and
+                no text is selected
+             2. entered text is not a digit
+              */
+            if ((isTextGTMax && !isTextSelected)
+                    || !isDigit)
             {
                 e.consume();
             }
