@@ -1,0 +1,8 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Game of life application Test Suite" annotations="1.5">
+    <test name="Unit tests" enabled="true">
+        <classes>
+            <class name="de.hindenbug.gameoflife.TestGameOfLife"/>
+        </classes>
+    </test>
+</suite>
