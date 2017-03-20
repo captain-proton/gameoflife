@@ -1,4 +1,6 @@
-package de.hindenbug.gameoflife;/**
+package de.hindenbug.gameoflife;
+
+/**
  * @version
  * @author Nils Verheyen
  * @since 11.03.17 22:50
