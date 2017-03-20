@@ -38,7 +38,7 @@ public class GameOfLife
         this.beings = new HashSet<>(beings);
     }
 
-    public void generateNextGeneration()
+    public synchronized void generateNextGeneration()
     {
         Set<Being> survivors = beings.stream()
                 .filter(isAliveInNextGeneration)
@@ -52,24 +52,24 @@ public class GameOfLife
         beings.addAll(newOnes);
     }
 
-    public Set<Being> getExistingNeighbors(Being being)
+    private Set<Being> getExistingNeighbors(Being being)
     {
         return beings.stream()
                 .filter(b -> b.isNeighborOf(being))
                 .collect(Collectors.toSet());
     }
 
-    public Stream<Being> getPossibleNeighbors(Being being)
+    private Stream<Being> getPossibleNeighbors(Being being)
     {
         return Stream.of(being.createNeighbors());
     }
 
-    public void addBeing(int row, int column)
+    public synchronized void addBeing(int row, int column)
     {
         beings.add(new Being(row, column));
     }
 
-    public boolean toggleBeing(int row, int column)
+    public synchronized boolean toggleBeing(int row, int column)
     {
         Optional<Being> optionalBeing = beings.stream()
                 .filter(b -> b.getRow() == row && b.getColumn() == column)
@@ -91,7 +91,7 @@ public class GameOfLife
         return beings;
     }
 
-    public void clear()
+    public synchronized void clear()
     {
         beings.clear();
     }
