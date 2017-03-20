@@ -5,6 +5,8 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,9 @@ import java.util.List;
 public class GameOfLifeService extends Service<GameOfLife> implements ObservableValue<GameOfLife>
 {
     public  static final int DEFAULT_GENERATION_TIME_MS = 200;
+
+    private static final Logger LOG = LoggerFactory.getLogger(GameOfLifeService.class);
+
     private final GameOfLife gameOfLife;
 
     private final List<ChangeListener<GameOfLife>> changeListeners;
@@ -44,7 +49,7 @@ public class GameOfLifeService extends Service<GameOfLife> implements Observable
             @Override
             protected GameOfLife call() throws Exception
             {
-                System.out.println("game of life task called");
+                LOG.info("game of life task called");
                 while (!this.isCancelled())
                 {
                     GameOfLife oldValue = new GameOfLife(gameOfLife.getBeings());
@@ -55,10 +60,10 @@ public class GameOfLifeService extends Service<GameOfLife> implements Observable
                         Thread.sleep(interval);
                     } catch (InterruptedException e)
                     {
-                        System.out.println("generated cancelled");
+                        LOG.info("generated cancelled");
                     }
                 }
-                System.out.println("...finished");
+                LOG.info("...finished");
                 return gameOfLife;
             }
         };
