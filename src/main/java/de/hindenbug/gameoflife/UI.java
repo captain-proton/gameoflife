@@ -33,8 +33,8 @@ import java.io.IOException;
 public class UI extends Application
 {
 
-    private static final int BEING_WIDTH = 20;
-    private static final int BEING_HEIGHT = 20;
+    private static final int BEING_WIDTH = 15;
+    private static final int BEING_HEIGHT = 15;
     private static final Paint CANVAS_BACKGROUND = Color.web("#eeeeee");
     private static final Paint CANVAS_GRID_LINE_COLOR = new Color(.7, .7, .7, 1);
     private static final Paint BEING_COLOR = new Color(.129, .586, .949, 1);
