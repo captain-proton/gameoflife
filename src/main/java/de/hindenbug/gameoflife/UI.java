@@ -89,7 +89,7 @@ public class UI extends Application
         primaryStage.setWidth(1280);
         primaryStage.setHeight(800);
 
-        Label lblRows = createLabel("Zellenhöhe");
+        Label lblRows = createLabel("Cell height");
         lblRows.getStyleClass().add("tf-label");
         TextField tfRows = new TextField();
         setTextFieldDefaults(tfRows,
@@ -98,7 +98,7 @@ public class UI extends Application
                                           : BEING_HEIGHT, Integer.toString(BEING_HEIGHT),
                 KeyEvent.KEY_TYPED, createBeingSizeTFHandler(2));
 
-        Label lblColumns = createLabel("Zellenbreite");
+        Label lblColumns = createLabel("Cell width");
         TextField tfColumns = new TextField();
         setTextFieldDefaults(tfColumns,
                 keyEvent -> beingWidth = !tfColumns.getText().isEmpty()
@@ -106,7 +106,7 @@ public class UI extends Application
                                          : BEING_WIDTH, Integer.toString(BEING_WIDTH),
                 KeyEvent.KEY_TYPED, createBeingSizeTFHandler(2));
 
-        Label lblTime = createLabel("Generierungszeit (ms)");
+        Label lblTime = createLabel("Time to generate (ms)");
         TextField tfTime = new TextField();
         setTextFieldDefaults(tfTime,
                 keyEvent ->
@@ -126,10 +126,10 @@ public class UI extends Application
         Button btnStop = new Button("Stop");
         btnStop.setOnAction(this::stopGenerator);
 
-        Button btnNextGeneration = new Button("Nächste Generation");
+        Button btnNextGeneration = new Button("Next generation");
         btnNextGeneration.setOnAction(this::onNextGeneration);
 
-        Button btnReset = new Button("Neustart");
+        Button btnReset = new Button("Restart");
         btnReset.setOnAction(this::onReset);
 
         controls = new HBox(5, lblRows, tfRows,
