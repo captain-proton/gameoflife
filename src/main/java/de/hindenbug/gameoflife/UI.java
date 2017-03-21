@@ -27,11 +27,16 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.Semaphore;
+import java.util.function.Predicate;
 
 public class UI extends Application
 {
+    private static final Logger LOG = LoggerFactory.getLogger(UI.class);
 
     private static final int BEING_WIDTH = 15;
     private static final int BEING_HEIGHT = 15;
@@ -39,7 +44,26 @@ public class UI extends Application
     private static final Paint CANVAS_GRID_LINE_COLOR = new Color(.7, .7, .7, 1);
     private static final Paint BEING_COLOR = new Color(.129, .586, .949, 1);
 
-    private final GameOfLife gameOfLife = new GameOfLife();
+    private Semaphore gameOfLifeSync = new Semaphore(1);
+
+    private final Predicate<Being> isInvisible = new Predicate<Being>()
+    {
+        @Override
+        public boolean test(Being being)
+        {
+            /*
+            the offset is used as additional space so no being is removed if it
+            influences visible beings
+             */
+            int offset = 10;
+            return (being.getRow() - offset) * beingHeight > canvas.getHeight()
+                    || (being.getColumn() - offset) * beingWidth > canvas.getWidth()
+                    || being.getRow() < 0
+                    || being.getColumn() < 0;
+        }
+    };
+
+    private final GameOfLife gameOfLife = GameOfLifeSample.GosperGliderGun;
 
     private Canvas canvas;
     private Scene scene;
@@ -62,8 +86,8 @@ public class UI extends Application
         primaryStage.setTitle("Game Of Life");
         primaryStage.setMinWidth(640);
         primaryStage.setMinHeight(480);
-        primaryStage.setWidth(1024);
-        primaryStage.setHeight(768);
+        primaryStage.setWidth(1280);
+        primaryStage.setHeight(800);
 
         Label lblRows = createLabel("Zellenhöhe");
         lblRows.getStyleClass().add("tf-label");
@@ -127,6 +151,7 @@ public class UI extends Application
         resizeCanvas();
         drawField();
         drawLines();
+        drawBeings();
 
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -143,6 +168,8 @@ public class UI extends Application
         if (generator == null)
         {
             generator = new GameOfLifeService(gameOfLife);
+            gameOfLifeSync = generator.getGameOfLifeSync();
+            generator.setGenerationTime(generationTimeMS);
             generator.addListener(this::onGenerationGenerated);
             generator.start();
         } else
@@ -159,8 +186,29 @@ public class UI extends Application
         {
             drawField();
             drawLines();
-            GameOfLife gameOfLife = (GameOfLife) newValue;
-            gameOfLife.getBeings().forEach(this::drawBeing);
+            try
+            {
+                LOG.debug("acquire");
+                gameOfLifeSync.acquire();
+                LOG.debug("cs");
+                drawBeings();
+                removeInvisibleBeings();
+            } catch (InterruptedException e)
+            {
+                LOG.error("access to game of life interrupted");
+            } finally
+            {
+                gameOfLifeSync.release();
+                LOG.debug("released");
+            }
+        }
+    }
+
+    private void removeInvisibleBeings()
+    {
+        if (gameOfLife.getBeings().removeIf(isInvisible))
+        {
+            LOG.debug("invisible beings removed");
         }
     }
 
@@ -175,10 +223,22 @@ public class UI extends Application
 
     private void onNextGeneration(ActionEvent event)
     {
-        gameOfLife.generateNextGeneration();
         drawField();
         drawLines();
-        gameOfLife.getBeings().forEach(this::drawBeing);
+
+        try
+        {
+            gameOfLifeSync.acquire();
+            gameOfLife.generateNextGeneration();
+            drawBeings();
+            removeInvisibleBeings();
+        } catch (InterruptedException e)
+        {
+            LOG.error("access to game of life interrupted");
+        } finally
+        {
+            gameOfLifeSync.release();
+        }
     }
 
     private void resizeCanvas()
@@ -222,6 +282,11 @@ public class UI extends Application
         gc.setFill(CANVAS_BACKGROUND);
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
+    }
+
+    private void drawBeings()
+    {
+        gameOfLife.getBeings().forEach(this::drawBeing);
     }
 
     private void drawBeing(double x, double y, Paint color)

@@ -1,9 +1,6 @@
 package de.hindenbug.gameoflife;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,7 +59,7 @@ public class GameOfLife
     /**
      * Generates the next generation according to the game of life rule set.
      */
-    public synchronized void generateNextGeneration()
+    public void generateNextGeneration()
     {
         // filter existing beings by those who survive in the next generation
         Set<Being> survivors = beings.stream()
@@ -97,7 +94,7 @@ public class GameOfLife
      * @param row    row of the being, may be less than zero
      * @param column column of the being, may be less than zero
      */
-    public synchronized void addBeing(int row, int column)
+    public void addBeing(int row, int column)
     {
         beings.add(new Being(row, column));
     }
@@ -110,7 +107,7 @@ public class GameOfLife
      * @param column column of the being, may be less than zero
      * @return <code>true</code> if the being was added, <code>false</code> otherwise
      */
-    public synchronized boolean toggleBeing(int row, int column)
+    public boolean toggleBeing(int row, int column)
     {
         Optional<Being> optionalBeing = beings.stream()
                 .filter(b -> b.getRow() == row && b.getColumn() == column)
@@ -132,7 +129,7 @@ public class GameOfLife
         return beings;
     }
 
-    public synchronized void clear()
+    public void clear()
     {
         beings.clear();
     }

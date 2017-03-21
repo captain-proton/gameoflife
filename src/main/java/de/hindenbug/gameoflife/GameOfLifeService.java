@@ -1,5 +1,6 @@
 package de.hindenbug.gameoflife;
 
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 /**
  * A <code>GameOfLifeService</code> is a javafx service capable of generating a {@linkplain GameOfLife} object.
@@ -20,11 +22,11 @@ import java.util.List;
  */
 public class GameOfLifeService extends Service<GameOfLife> implements ObservableValue<GameOfLife>
 {
-    public static final int DEFAULT_GENERATION_TIME_MS = 200;
-
-    private static final Logger LOG = LoggerFactory.getLogger(GameOfLifeService.class);
+    public static final int DEFAULT_GENERATION_TIME_MS = 150;
 
     private final GameOfLife gameOfLife;
+    private final Semaphore gameOfLifeSync;
+    private int generation;
 
     private final List<ChangeListener<GameOfLife>> changeListeners;
     private final List<InvalidationListener> invalidationListeners;
@@ -33,15 +35,16 @@ public class GameOfLifeService extends Service<GameOfLife> implements Observable
 
     public GameOfLifeService(GameOfLife gameOfLife)
     {
-        this(gameOfLife, DEFAULT_GENERATION_TIME_MS);
+        this(gameOfLife, DEFAULT_GENERATION_TIME_MS, new Semaphore(1));
     }
 
-    public GameOfLifeService(GameOfLife gameOfLife, int interval)
+    public GameOfLifeService(GameOfLife gameOfLife, int interval, Semaphore gameOfLifeSync)
     {
         this.gameOfLife = gameOfLife;
         this.interval = interval;
         this.changeListeners = new ArrayList<>();
         this.invalidationListeners = new ArrayList<>();
+        this.gameOfLifeSync = gameOfLifeSync;
     }
 
     @Override
@@ -49,18 +52,37 @@ public class GameOfLifeService extends Service<GameOfLife> implements Observable
     {
         return new Task<GameOfLife>()
         {
+            private final Logger LOG = LoggerFactory.getLogger(GameOfLifeService.class);
+
             @Override
             protected GameOfLife call() throws Exception
             {
                 LOG.info("game of life task called");
                 while (!this.isCancelled())
                 {
-                    GameOfLife oldValue = new GameOfLife(gameOfLife.getBeings());
-                    gameOfLife.generateNextGeneration();
-                    changeListeners.forEach(cl -> cl.changed(null, oldValue, gameOfLife));
+                    LOG.debug("not cancelled");
+                    GameOfLife oldValue;
                     try
                     {
+                        LOG.debug("acquire");
+                        gameOfLifeSync.acquire();
+                        LOG.debug("cs");
+                        oldValue = new GameOfLife(gameOfLife.getBeings());
+                        gameOfLife.generateNextGeneration();
+                    } finally
+                    {
+                        gameOfLifeSync.release();
+                        LOG.debug("released");
+                    }
+                    generation++;
+                    LOG.debug("generation #" + generation + " generated");
+                    Platform.runLater(() -> changeListeners.forEach(cl -> cl.changed(null, oldValue, gameOfLife)));
+                    LOG.debug("listeners called");
+                    try
+                    {
+                        LOG.debug("sleeping");
                         Thread.sleep(interval);
+                        LOG.debug("woke up");
                     } catch (InterruptedException e)
                     {
                         LOG.info("generated cancelled");
@@ -68,6 +90,27 @@ public class GameOfLifeService extends Service<GameOfLife> implements Observable
                 }
                 LOG.info("...finished");
                 return gameOfLife;
+            }
+
+            @Override
+            protected void succeeded()
+            {
+                super.succeeded();
+                LOG.debug("succeeded");
+            }
+
+            @Override
+            protected void cancelled()
+            {
+                super.cancelled();
+                LOG.debug("cancelled");
+            }
+
+            @Override
+            protected void failed()
+            {
+                super.failed();
+                LOG.debug("failed");
             }
         };
     }
@@ -108,5 +151,10 @@ public class GameOfLifeService extends Service<GameOfLife> implements Observable
             throw new IllegalArgumentException("millis must be greater than zero");
 
         this.interval = millis;
+    }
+
+    public Semaphore getGameOfLifeSync()
+    {
+        return gameOfLifeSync;
     }
 }
