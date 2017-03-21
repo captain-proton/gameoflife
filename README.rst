@@ -8,7 +8,9 @@ The game itself is implemented, so that a infinite space can be used. The user i
 - Width of a lifeform
 - Height of a lifeform
 - Time in millis that is waited until the next generation is calculated
-  
+
+.. image:: game_of_life_ui.png
+
 Installation
 ============
 
