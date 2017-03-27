@@ -6,7 +6,6 @@ package de.hindenbug.gameoflife;
  * @since 11.03.17 22:50
  */
 
-import com.sun.istack.internal.NotNull;
 import javafx.application.Application;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -327,8 +326,8 @@ public class UI extends Application
 
     private static <T extends Event> void setTextFieldDefaults(TextField textField, EventHandler<? super KeyEvent> keyReleasedHandler,
                                                                String text,
-                                                               @NotNull EventType<T> eventType,
-                                                               @NotNull EventHandler<? super T> eventHandler)
+                                                               EventType<T> eventType,
+                                                               EventHandler<? super T> eventHandler)
     {
         textField.setText(text);
         textField.addEventHandler(eventType, eventHandler);
