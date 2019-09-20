@@ -22,7 +22,7 @@ import java.util.concurrent.Semaphore;
  */
 public class GameOfLifeService extends Service<GameOfLife> implements ObservableValue<GameOfLife>
 {
-    public static final int DEFAULT_GENERATION_TIME_MS = 150;
+    static final int DEFAULT_GENERATION_TIME_MS = 150;
 
     private final GameOfLife gameOfLife;
     private final Semaphore gameOfLifeSync;
@@ -145,7 +145,7 @@ public class GameOfLifeService extends Service<GameOfLife> implements Observable
         this.invalidationListeners.remove(invalidationListener);
     }
 
-    public synchronized void setGenerationTime(int millis)
+    synchronized void setGenerationTime(int millis)
     {
         if (millis <= 0)
             throw new IllegalArgumentException("millis must be greater than zero");
@@ -153,7 +153,7 @@ public class GameOfLifeService extends Service<GameOfLife> implements Observable
         this.interval = millis;
     }
 
-    public Semaphore getGameOfLifeSync()
+    Semaphore getGameOfLifeSync()
     {
         return gameOfLifeSync;
     }

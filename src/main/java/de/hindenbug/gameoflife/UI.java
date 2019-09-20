@@ -1,11 +1,5 @@
 package de.hindenbug.gameoflife;
 
-/**
- * @version
- * @author Nils Verheyen
- * @since 11.03.17 22:50
- */
-
 import javafx.application.Application;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -29,7 +23,6 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.concurrent.Semaphore;
 import java.util.function.Predicate;
 
@@ -74,13 +67,13 @@ public class UI extends Application
 
     private GameOfLifeService generator;
 
-    public static void main(String[] args)
+    static void main(String[] args)
     {
         launch(args);
     }
 
     @Override
-    public void start(Stage primaryStage) throws IOException
+    public void start(Stage primaryStage)
     {
         primaryStage.setTitle("Game Of Life");
         primaryStage.setMinWidth(640);
@@ -93,7 +86,7 @@ public class UI extends Application
         TextField tfRows = new TextField();
         setTextFieldDefaults(tfRows,
                 keyEvent -> beingHeight = !tfRows.getText().isEmpty()
-                                          ? Integer.valueOf(tfRows.getText())
+                                          ? Integer.parseInt(tfRows.getText())
                                           : BEING_HEIGHT, Integer.toString(BEING_HEIGHT),
                 KeyEvent.KEY_TYPED, createBeingSizeTFHandler(2));
 
@@ -101,7 +94,7 @@ public class UI extends Application
         TextField tfColumns = new TextField();
         setTextFieldDefaults(tfColumns,
                 keyEvent -> beingWidth = !tfColumns.getText().isEmpty()
-                                         ? Integer.valueOf(tfColumns.getText())
+                                         ? Integer.parseInt(tfColumns.getText())
                                          : BEING_WIDTH, Integer.toString(BEING_WIDTH),
                 KeyEvent.KEY_TYPED, createBeingSizeTFHandler(2));
 
@@ -111,7 +104,7 @@ public class UI extends Application
                 keyEvent ->
                 {
                     generationTimeMS = !tfTime.getText().isEmpty()
-                                       ? Integer.valueOf(tfTime.getText())
+                                       ? Integer.parseInt(tfTime.getText())
                                        : GameOfLifeService.DEFAULT_GENERATION_TIME_MS;
                     if (generator != null)
                         generator.setGenerationTime(generationTimeMS);
@@ -162,7 +155,7 @@ public class UI extends Application
             generator.cancel();
     }
 
-    private <T extends Event> void startGenerator(ActionEvent event)
+    private void startGenerator(ActionEvent event)
     {
         if (generator == null)
         {
@@ -177,9 +170,9 @@ public class UI extends Application
         }
     }
 
-    private <T extends Event> void onGenerationGenerated(ObservableValue observableValue,
-                                                         Object oldValue,
-                                                         Object newValue)
+    private void onGenerationGenerated(ObservableValue observableValue,
+                                       Object oldValue,
+                                       Object newValue)
     {
         if (newValue != null)
         {
