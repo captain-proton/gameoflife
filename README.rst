@@ -19,6 +19,7 @@ To run the game clone this repository and package the java archive
 .. code-block:: shell
 
     git clone https://github.com/captain-proton/gameoflife.git
+    cd gameoflife
     mvn package
 
 With the use of the shade plugin a jar is build under the target dir with the name ``game-of-life.jar``. You can run the jar simply by using:
